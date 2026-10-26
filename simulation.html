@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="/logic.js" defer></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BloodLink | Blood Bank Management</title>
+
+    <link rel="stylesheet" href="/design.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f9;
+            color: #1f2937;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 245px;
+            min-width: 245px;
+            background: #7f1d1d;
+            color: white;
+            padding: 25px 15px;
+        }
+
+        .brand {
+            font-size: 25px;
+            font-weight: bold;
+            margin: 0 0 35px 10px;
+        }
+
+        .brand span {
+            color: #fecaca;
+        }
+
+        .nav-item {
+            display: block;
+            width: 100%;
+            padding: 13px 15px;
+            margin-bottom: 8px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: white;
+            text-align: left;
+            font-size: 15px;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: #b91c1c;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 30px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        .btn {
+            padding: 11px 17px;
+            border: none;
+            border-radius: 7px;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #b91c1c;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #991b1b;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card,
+        .panel,
+        .blood-card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card h3 {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0 0 12px;
+        }
+
+        .stat-number {
+            font-size: 30px;
+            font-weight: bold;
+            color: #991b1b;
+        }
+
+        .panel {
+            margin-bottom: 25px;
+            overflow-x: auto;
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+        }
+
+        .blood-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .blood-card h3 {
+            margin: 0 0 15px;
+            color: #991b1b;
+            font-size: 23px;
+        }
+
+        .unit-count {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #dc2626;
+            transition: width 0.3s ease;
+        }
+
+        .stock-status {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 5px 9px;
+            border-radius: 20px;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 550px;
+        }
+
+        th,
+        td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f9fafb;
+            color: #475569;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 350px;
+            padding: 11px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            margin-bottom: 18px;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* Donor registration modal */
+
+        #donorModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.65);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        #donorModal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        #closeModalBtn {
+            border: none;
+            background: transparent;
+            font-size: 28px;
+            color: #64748b;
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: 2px solid #fecaca;
+            border-color: #b91c1c;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        #toastMessage {
+            display: none;
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 2000;
+            max-width: calc(100% - 40px);
+        }
+
+        .empty-state {
+            color: #64748b;
+            padding: 15px 0;
+        }
+
+        @media (max-width: 1000px) {
+            .stats-grid,
+            .blood-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 650px) {
+            .app-container {
+                display: block;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-width: 0;
+                padding: 15px;
+            }
+
+            .brand {
+                margin: 5px 5px 15px;
+            }
+
+            .nav-item {
+                display: inline-block;
+                width: auto;
+                margin: 3px;
+            }
+
+            .main-content {
+                padding: 18px;
+            }
+
+            .stats-grid,
+            .blood-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar h1 {
+                font-size: 23px;
+            }
+        }
+    </style>
+
+    <script src="/logic.js" defer></script>
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">Blood<span>Link</span></div>
+
+        <nav aria-label="Main navigation">
+
+            <button type="button"
+                    class="nav-item active"
+                    data-page="dashboard">
+                Dashboard
+            </button>
+
+            <button type="button"
+                    class="nav-item"
+                    data-page="donors">
+                Donor Management
+            </button>
+
+            <button type="button"
+                    class="nav-item"
+                    data-page="inventory">
+                Blood Inventory
+            </button>
+
+            <button type="button"
+                    class="nav-item"
+                    data-page="emergency">
+                Emergency Requests
+            </button>
+
+            <button type="button"
+                    class="nav-item"
+                    data-page="allocation">
+                Blood Allocation
+            </button>
+
+            <button type="button"
+                    class="nav-item"
+                    data-page="history">
+                Allocation History
+            </button>
+
+            <button type="button"
+                    class="nav-item"
+                    data-page="analytics">
+                Analytics
+            </button>
+
+            <button type="button"
+                    class="nav-item"
+                    data-page="settings">
+                Settings
+            </button>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content">
+
+        <!-- DASHBOARD -->
+
+        <section id="dashboard" class="page-section active">
+
+            <div class="topbar">
+
+                <div>
+                    <h1>Dashboard</h1>
+                    <p class="subtitle">
+                        Blood bank inventory and donor overview
+                    </p>
+                </div>
+
+                <button type="button"
+                        id="registerDonorBtn"
+                        class="btn btn-primary">
+                    + Register Donor
+                </button>
+
+            </div>
+
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <h3>Total Blood Units</h3>
+                    <div class="stat-number" id="totalUnits">Loading...</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Registered Donors</h3>
+                    <div class="stat-number" id="totalDonors">Loading...</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Pending Requests</h3>
+                    <div class="stat-number" id="pendingRequests">0</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Critical Stock Alerts</h3>
+                    <div class="stat-number" id="criticalAlerts">0</div>
+                </div>
+
+            </div>
+
+
+            <div class="section-heading">
+                <h2>Blood Availability</h2>
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-go="inventory">
+                    View Inventory
+                </button>
+            </div>
+
+
+            <div class="blood-grid">
+
+                <div class="blood-card" data-group="A+">
+                    <h3>A+</h3>
+                    <div class="unit-count">Loading...</div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="stock-status">Loading...</span>
+                </div>
+
+                <div class="blood-card" data-group="A-">
+                    <h3>A-</h3>
+                    <div class="unit-count">Loading...</div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="stock-status">Loading...</span>
+                </div>
+
+                <div class="blood-card" data-group="B+">
+                    <h3>B+</h3>
+                    <div class="unit-count">Loading...</div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="stock-status">Loading...</span>
+                </div>
+
+                <div class="blood-card" data-group="B-">
+                    <h3>B-</h3>
+                    <div class="unit-count">Loading...</div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="stock-status">Loading...</span>
+                </div>
+
+                <div class="blood-card" data-group="AB+">
+                    <h3>AB+</h3>
+                    <div class="unit-count">Loading...</div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="stock-status">Loading...</span>
+                </div>
+
+                <div class="blood-card" data-group="AB-">
+                    <h3>AB-</h3>
+                    <div class="unit-count">Loading...</div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="stock-status">Loading...</span>
+                </div>
+
+                <div class="blood-card" data-group="O+">
+                    <h3>O+</h3>
+                    <div class="unit-count">Loading...</div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="stock-status">Loading...</span>
+                </div>
+
+                <div class="blood-card" data-group="O-">
+                    <h3>O-</h3>
+                    <div class="unit-count">Loading...</div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="stock-status">Loading...</span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- DONOR MANAGEMENT -->
+
+        <section id="donors" class="page-section">
+
+            <div class="topbar">
+
+                <div>
+                    <h1>Donor Management</h1>
+                    <p class="subtitle">
+                        Register and manage blood donors
+                    </p>
+                </div>
+
+                <button type="button"
+                        id="registerDonorBtn2"
+                        class="btn btn-primary">
+                    + Register Donor
+                </button>
+
+            </div>
+
+
+            <div class="panel">
+
+                <h2>Registered Donors</h2>
+
+                <input
+                    type="search"
+                    id="donorSearch"
+                    class="search-input"
+                    placeholder="Search donors..."
+                    aria-label="Search donors"
+                >
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Donor ID</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Blood Group</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="donorTableBody">
+
+                            <tr>
+                                <td colspan="5">Loading donors...</td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- BLOOD INVENTORY -->
+
+        <section id="inventory" class="page-section">
+
+            <div class="topbar">
+
+                <div>
+                    <h1>Blood Inventory</h1>
+                    <p class="subtitle">
+                        Current blood stock from the database
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <h2>Inventory Details</h2>
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Blood Group</th>
+                                <th>Available Units</th>
+                                <th>Minimum Stock</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="inventoryTableBody">
+
+                            <tr>
+                                <td colspan="4">Loading inventory...</td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+<!-- EMERGENCY REQUESTS -->
+
+<section id="emergency" class="page-section">
+
+    <div class="topbar">
+        <div>
+            <h1>Emergency Blood Requests</h1>
+            <p class="subtitle">
+                Register and manage emergency blood requirements.
+            </p>
+        </div>
+
+        <button type="button"
+                id="newEmergencyRequestBtn"
+                class="btn btn-primary">
+            + New Request
+        </button>
+    </div>
+
+    <!-- REQUEST FORM -->
+
+    <div class="panel">
+
+        <h2>Submit Emergency Request</h2>
+
+        <form id="emergencyRequestForm">
+
+            <div class="form-group">
+                <label for="patientName">Patient Name</label>
+                <input
+                    type="text"
+                    id="patientName"
+                    name="patient_name"
+                    maxlength="100"
+                    placeholder="Enter patient name"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="hospitalName">Hospital Name</label>
+                <input
+                    type="text"
+                    id="hospitalName"
+                    name="hospital_name"
+                    maxlength="150"
+                    placeholder="Enter hospital name"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="requestBloodGroup">Required Blood Group</label>
+
+                <select
+                    id="requestBloodGroup"
+                    name="blood_group"
+                    required
+                >
+                    <option value="">Select blood group</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="unitsRequired">Units Required</label>
+                <input
+                    type="number"
+                    id="unitsRequired"
+                    name="units_required"
+                    min="1"
+                    max="100"
+                    step="1"
+                    placeholder="Enter number of units"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="requestUrgency">Urgency Level</label>
+
+                <select
+                    id="requestUrgency"
+                    name="urgency"
+                    required
+                >
+                    <option value="">Select urgency</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                </select>
+            </div>
+
+            <button
+                type="submit"
+                id="submitEmergencyRequestBtn"
+                class="btn btn-primary"
+            >
+                Submit Request
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- REQUEST TABLE -->
+
+    <div class="panel">
+
+        <div class="section-heading">
+            <h2>Submitted Requests</h2>
+
+            <button
+                type="button"
+                id="refreshEmergencyRequestsBtn"
+                class="btn btn-secondary"
+            >
+                Refresh
+            </button>
+        </div>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Patient</th>
+                        <th>Hospital</th>
+                        <th>Blood Group</th>
+                        <th>Units</th>
+                        <th>Urgency</th>
+                        <th>Status</th>
+                        <th>Requested At</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="emergencyRequestsTableBody">
+                    <tr>
+                        <td colspan="9">Loading requests...</td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+        <!-- BLOOD ALLOCATION -->
+
+        <section id="allocation" class="page-section">
+
+            <div class="topbar">
+                <div>
+                    <h1>Blood Allocation</h1>
+                    <p class="subtitle">
+                        Allocate available stock to a hospital or emergency request.
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel">
+
+                <h2>Allocate Blood</h2>
+
+                <form id="allocationForm">
+
+                    <div class="form-group">
+                        <label for="allocationType">Allocation Type</label>
+                        <select id="allocationType" name="allocation_type" required>
+                            <option value="hospital">Hospital allocation</option>
+                            <option value="emergency">Emergency request</option>
+                        </select>
+                    </div>
+
+                    <div id="hospitalAllocationFields">
+                        <div class="form-group">
+                            <label for="allocationHospital">Hospital Name</label>
+                            <input
+                                type="text"
+                                id="allocationHospital"
+                                name="hospital_name"
+                                maxlength="150"
+                                placeholder="Enter hospital name"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="allocationPatient">Patient Name (optional)</label>
+                            <input
+                                type="text"
+                                id="allocationPatient"
+                                name="patient_name"
+                                maxlength="100"
+                                placeholder="Enter patient name"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="allocationBloodGroup">Blood Group</label>
+                            <select id="allocationBloodGroup" name="blood_group" required>
+                                <option value="">Select blood group</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="allocationUnits">Units</label>
+                            <input
+                                type="number"
+                                id="allocationUnits"
+                                name="units"
+                                min="1"
+                                max="100"
+                                step="1"
+                                placeholder="Enter units to allocate"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div id="emergencyAllocationFields" class="hidden">
+                        <div class="form-group">
+                            <label for="allocationRequest">Pending Emergency Request</label>
+                            <select id="allocationRequest" name="request_id" disabled>
+                                <option value="">Select a pending request</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitAllocationBtn" class="btn btn-primary">
+                        Allocate Blood
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- ALLOCATION HISTORY -->
+
+        <section id="history" class="page-section">
+
+            <div class="topbar">
+                <div>
+                    <h1>Allocation History</h1>
+                    <p class="subtitle">
+                        Blood allocation records
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel">
+
+                <h2>Allocation Records</h2>
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Patient</th>
+                                <th>Hospital</th>
+                                <th>Blood Group</th>
+                                <th>Units</th>
+                                <th>Allocated At</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="6">
+                                    Loading allocation records...
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ANALYTICS -->
+
+        <section id="analytics" class="page-section">
+
+            <div class="topbar">
+                <div>
+                    <h1>Analytics</h1>
+                    <p class="subtitle">
+                        Blood stock summary
+                    </p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <h3>Total Blood Units</h3>
+                    <div class="stat-number" id="analyticsTotal">
+                        Loading...
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Blood Groups at Critical Stock</h3>
+                    <div class="stat-number" id="analyticsLow">
+                        Loading...
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SETTINGS -->
+
+        <section id="settings" class="page-section">
+
+            <div class="topbar">
+                <div>
+                    <h1>Settings</h1>
+                    <p class="subtitle">
+                        BloodLink application information
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel">
+
+                <h2>Application Details</h2>
+
+                <p><strong>Application:</strong> BloodLink</p>
+                <p><strong>Database:</strong> bloodlink_db</p>
+                <p><strong>Backend:</strong> Flask</p>
+                <p><strong>Database system:</strong> MySQL</p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- DONOR REGISTRATION MODAL -->
+
+<div id="donorModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="donorModalTitle">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2 id="donorModalTitle">Register New Donor</h2>
+
+            <button type="button"
+                    id="closeModalBtn"
+                    aria-label="Close registration form">
+                &times;
+            </button>
+
+        </div>
+
+
+        <form id="donorForm">
+
+            <div class="form-group">
+
+                <label for="donorName">Full Name</label>
+
+                <input
+                    type="text"
+                    id="donorName"
+                    name="name"
+                    placeholder="Enter donor's full name"
+                    maxlength="100"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="donorPhone">Phone Number</label>
+
+                <input
+                    type="tel"
+                    id="donorPhone"
+                    name="phone"
+                    placeholder="Enter 10-digit phone number"
+                    inputmode="numeric"
+                    pattern="[0-9]{10}"
+                    maxlength="10"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="donorBloodGroup">Blood Group</label>
+
+                <select
+                    id="donorBloodGroup"
+                    name="blood_group"
+                    required
+                >
+
+                    <option value="">Select blood group</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="donorLocation">Location</label>
+
+                <input
+                    type="text"
+                    id="donorLocation"
+                    name="location"
+                    placeholder="Enter city or area"
+                    maxlength="150"
+                    required
+                >
+
+            </div>
+
+
+            <div class="modal-actions">
+
+                <button type="button"
+                        id="cancelModalBtn"
+                        class="btn btn-secondary">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        id="submitDonorBtn"
+                        class="btn btn-primary">
+                    Register Donor
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- NOTIFICATION -->
+
+<div id="toastMessage" role="status" aria-live="polite"></div>
+
+
+</body>
+</html>
